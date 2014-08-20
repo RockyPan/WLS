@@ -467,6 +467,7 @@
 				5C6AF4AC1998C89400B322B1 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		5C6AF4AD1998C89400B322B1 /* Build configuration list for PBXNativeTarget "WDSTests" */ = {
 			isa = XCConfigurationList;
@@ -475,6 +476,7 @@
 				5C6AF4AF1998C89400B322B1 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
