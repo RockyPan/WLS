@@ -12,5 +12,8 @@
 
 @property (assign) IBOutlet NSWindow *window;
 @property (weak) IBOutlet NSTableView *table;
+- (IBAction)addWord:(id)sender;
+@property (weak) IBOutlet NSTextField *word;
+@property (weak) IBOutlet NSTextField *meaning;
 
 @end

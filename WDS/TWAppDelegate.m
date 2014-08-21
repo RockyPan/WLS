@@ -9,9 +9,11 @@
 #import "TWAppDelegate.h"
 #import <CoreData/CoreData.h>
 
-@interface TWAppDelegate () <NSTableViewDataSource, NSTableViewDelegate>
+@interface TWAppDelegate () <NSTableViewDataSource, NSTableViewDelegate, NSTextFieldDelegate>
 
 @property (nonatomic, strong) NSMutableArray * wordsObj;
+@property (nonatomic, strong) NSMutableArray * tableContent;
+@property (nonatomic, strong) NSMutableArray * filterWords;
 
 @end
 
@@ -92,25 +94,44 @@
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
     [self loadWords];
+    self.tableContent = self.wordsObj;
     [self.table reloadData];
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
     // Insert code here to initialize your application
-    //[self loadWords];
-    
+    [self.word setDelegate:self];
+}
+
+- (void)controlTextDidChange:(NSNotification *)obj {
+    if ([obj object] == self.word) {
+        NSString * str = self.word.stringValue;
+        if (str.)
+        NSPredicate * pre = [NSPredicate predicateWithFormat:@"word beginsWith %@", self.word.stringValue];
+        self.filterWords = [[self.wordsObj filteredArrayUsingPredicate:pre] mutableCopy];
+        self.tableContent = self.filterWords;
+        [self.table reloadData];
+        //self.word.f];
+
+    }
 }
 
 - (NSInteger) numberOfRowsInTableView:(NSTableView *)tableView {
-    return self.wordsObj.count;
+    return self.tableContent.count;
 }
 
 - (NSView *) tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
     NSTableCellView * cell = [tableView makeViewWithIdentifier:[tableColumn identifier] owner:self];
     //PK the identifier of colomn is the same as filed name of table
-    cell.textField.stringValue = [self.wordsObj[row] valueForKey:[tableColumn identifier]];
+    cell.textField.stringValue = [self.tableContent[row] valueForKey:[tableColumn identifier]];
     return cell;
 }
 
+- (void)tableView:(NSTableView *)tableView sortDescriptorsDidChange:(NSArray *)oldDescriptors {
+    [self.tableContent sortUsingDescriptors:[tableView sortDescriptors]];
+    [tableView reloadData];
+}
+- (IBAction)addWord:(id)sender {
+}
 @end
