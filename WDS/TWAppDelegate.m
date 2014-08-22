@@ -107,10 +107,21 @@
 - (void)controlTextDidChange:(NSNotification *)obj {
     if ([obj object] == self.word) {
         NSString * str = self.word.stringValue;
-        if (str.)
-        NSPredicate * pre = [NSPredicate predicateWithFormat:@"word beginsWith %@", self.word.stringValue];
-        self.filterWords = [[self.wordsObj filteredArrayUsingPredicate:pre] mutableCopy];
-        self.tableContent = self.filterWords;
+        if (str.length == 0) {
+            self.tableContent = self.wordsObj;
+        } else {
+            NSPredicate * pre = [NSPredicate predicateWithFormat:@"word beginsWith %@", self.word.stringValue];
+            self.filterWords = [[self.wordsObj filteredArrayUsingPredicate:pre] mutableCopy];
+            self.tableContent = self.filterWords;
+            NSString * word = [self.filterWords[0] valueForKey:@"word"];
+
+            if (self.filterWords.count == 1 && [word isEqualToString:str]) {
+                NSString * meaning = [self.filterWords[0] valueForKey:@"meaning"];
+                self.meaning.stringValue = meaning;
+            } else {
+                self.meaning.stringValue = @"";
+            }
+        }
         [self.table reloadData];
         //self.word.f];
 
