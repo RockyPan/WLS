@@ -150,6 +150,11 @@
     [tableView reloadData];
 }
 
+- (void)tableViewSelectionDidChange:(NSNotification *)notification {
+    NSTableView * table = notification.object;
+    [self.btnDelWord setEnabled:0 != [table numberOfSelectedRows]];
+}
+
 - (IBAction)addWord:(id)sender {
     NSString * word = self.word.stringValue;
     NSString * meaning = self.meaning.stringValue;
@@ -173,7 +178,50 @@
     //清空textfield内容
     self.word.stringValue = @"";
     self.meaning.stringValue = @"";
+    [self.btnAddWord setEnabled:NO];
     [self.word becomeFirstResponder];
+    self.tableContent = self.wordsObj;
+    [self.table reloadData];
 }
+
+- (IBAction)delWord:(id)sender {
+    NSInteger no = [self.table numberOfSelectedRows];
+    if (0 != no) {
+        NSInteger choice = NSRunAlertPanel(@"删除确认", @"您确认要删除选中的这%ld个单词吗？", @"确认", @"取消", nil, no);
+        if (NSAlertDefaultReturn != choice) return;
+    } else {
+        return;
+    }
+    
+    NSIndexSet * rows = [self.table selectedRowIndexes];
+    [rows enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *stop) {
+        [[self getManagedObjectContext] deleteObject:self.tableContent[idx]];
+        [self printLog:[NSString stringWithFormat:@"删除单词：%@ - %@",
+                        [self.tableContent[idx] valueForKey:@"word"],
+                        [self.tableContent[idx] valueForKey:@"meaning"]]];
+    }];
+    [self saveContext];
+    
+    if (self.tableContent == self.wordsObj) {
+        [self.wordsObj removeObjectsAtIndexes:rows];
+    } else {
+        //PK 如果删除时用的时过滤表，要把原表中相应的项也删除
+        NSMutableArray * objs = [NSMutableArray array];
+        [objs insertObjects:self.filterWords atIndexes:rows];
+        [self.filterWords removeObjectsAtIndexes:rows];
+        [self.wordsObj removeObjectsInArray:objs];
+    }
+    [self.table reloadData];
+    [self.btnDelWord setEnabled:NO];
+}
+
+- (IBAction)returnOnTextField:(id)sender {
+    [self addWord:nil];
+}
+
+- (void)printLog:(NSString *)log {
+    [self.log insertText:[NSString stringWithFormat:@"%@\r\n", log]];
+}
+
 
 @end
