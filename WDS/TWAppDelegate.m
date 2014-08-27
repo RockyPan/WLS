@@ -102,6 +102,7 @@
 {
     // Insert code here to initialize your application
     [self.word setDelegate:self];
+    [self.meaning setDelegate:self];
 }
 
 - (void)controlTextDidChange:(NSNotification *)obj {
@@ -126,6 +127,11 @@
         //self.word.f];
 
     }
+    
+    NSString * word = self.word.stringValue;
+    NSString * meaning = self.meaning.stringValue;
+    if (0 != word.length && 0 != meaning.length) [self.btnAddWord setEnabled:YES];
+    else [self.btnAddWord setEnabled:NO];
 }
 
 - (NSInteger) numberOfRowsInTableView:(NSTableView *)tableView {
@@ -143,6 +149,31 @@
     [self.tableContent sortUsingDescriptors:[tableView sortDescriptors]];
     [tableView reloadData];
 }
+
 - (IBAction)addWord:(id)sender {
+    NSString * word = self.word.stringValue;
+    NSString * meaning = self.meaning.stringValue;
+    
+    //检查单词是否重复了
+    NSPredicate * pre = [NSPredicate predicateWithFormat:@"word == %@", word];
+    NSArray * matchs = [self.wordsObj filteredArrayUsingPredicate:pre];
+    if (0 != [matchs count]) {  //PK 修改内容
+        [matchs[0] setValue:meaning forKeyPath:@"meaning"];
+    } else {                    //保存单词
+        NSManagedObjectContext * context = [self getManagedObjectContext];
+        NSManagedObject * obj = [NSEntityDescription insertNewObjectForEntityForName:@"Words" inManagedObjectContext:context];
+        [obj setValue:word forKey:@"word"];
+        [obj setValue:meaning forKey:@"meaning"];
+        [obj setValue:[NSDate date] forKey:@"lastAccess"];
+        [obj setValue:[NSNumber numberWithInt:0] forKey:@"familiarity"];
+        [self.wordsObj addObject:obj];
+    }
+    [self saveContext];
+    
+    //清空textfield内容
+    self.word.stringValue = @"";
+    self.meaning.stringValue = @"";
+    [self.word becomeFirstResponder];
 }
+
 @end

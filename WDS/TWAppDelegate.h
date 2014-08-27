@@ -15,5 +15,6 @@
 - (IBAction)addWord:(id)sender;
 @property (weak) IBOutlet NSTextField *word;
 @property (weak) IBOutlet NSTextField *meaning;
+@property (weak) IBOutlet NSButton *btnAddWord;
 
 @end
