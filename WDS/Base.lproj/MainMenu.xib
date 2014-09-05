@@ -855,11 +855,18 @@
                     <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bz6-ML-zrN">
                         <rect key="frame" x="20" y="186" width="146" height="22"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="mhW-d0-FUV">
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="mhW-d0-FUV">
                             <font key="font" metaFont="system"/>
                             <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                             <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
+                        <connections>
+                            <binding destination="Voe-Tx-rLC" name="value" keyPath="self.strWord" id="rhD-FF-qow">
+                                <dictionary key="options">
+                                    <bool key="NSContinuouslyUpdatesValue" value="YES"/>
+                                </dictionary>
+                            </binding>
+                        </connections>
                     </textField>
                     <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Hhd-tn-Jcl">
                         <rect key="frame" x="174" y="186" width="202" height="22"/>
@@ -871,6 +878,11 @@
                         </textFieldCell>
                         <connections>
                             <action selector="returnOnTextField:" target="Voe-Tx-rLC" id="iyZ-Ke-mBQ"/>
+                            <binding destination="Voe-Tx-rLC" name="value" keyPath="self.strMeaning" id="TZd-LL-lyt">
+                                <dictionary key="options">
+                                    <bool key="NSContinuouslyUpdatesValue" value="YES"/>
+                                </dictionary>
+                            </binding>
                         </connections>
                     </textField>
                     <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="2Lg-w3-EmG">
@@ -927,5 +939,6 @@
                 </subviews>
             </view>
         </window>
+        <userDefaultsController representsSharedInstance="YES" id="xzp-Jo-BSd"/>
     </objects>
 </document>

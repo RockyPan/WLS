@@ -7,13 +7,16 @@
 //
 
 #import "TWAppDelegate.h"
+#import "GCDAsyncSocket.h"
 #import <CoreData/CoreData.h>
 
-@interface TWAppDelegate () <NSTableViewDataSource, NSTableViewDelegate, NSTextFieldDelegate>
+@interface TWAppDelegate () <NSTableViewDataSource, NSTableViewDelegate>
 
 @property (nonatomic, strong) NSMutableArray * wordsObj;
 @property (nonatomic, strong) NSMutableArray * tableContent;
 @property (nonatomic, strong) NSMutableArray * filterWords;
+
+
 
 @end
 
@@ -92,47 +95,94 @@
     //[self logWords];
 }
 
+- (void)awakeFromNib {
+    [self addObserver:self forKeyPath:@"strWord" options:0 context:nil];
+    [self addObserver:self forKeyPath:@"strMeaning" options:0 context:nil];
+}
+
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
     [self loadWords];
     self.tableContent = self.wordsObj;
     [self.table reloadData];
+    
+    asyncSocket = [[GCDAsyncSocket alloc] initWithDelegate:self delegateQueue:dispatch_get_main_queue()];
+    connectedSockets = [[NSMutableArray alloc] init];
+    NSError * err = nil;
+    if ([asyncSocket acceptOnPort:0 error:&err]) {
+        UInt16 port = [asyncSocket localPort];
+        [self printLog:[NSString stringWithFormat:@"开始在端口%i接受连接。。。", (int)port]];
+        netService = [[NSNetService alloc] initWithDomain:@"local." type:@"_WDS._tcp." name:@"" port:port];
+        [netService setDelegate:self];
+        [netService publish];
+    } else {
+        [self printLog:[NSString stringWithFormat:@"开始接受连接失败，错误信息：%@", err]];
+    }
 }
 
-- (void)applicationDidFinishLaunching:(NSNotification *)aNotification
-{
-    // Insert code here to initialize your application
-    [self.word setDelegate:self];
-    [self.meaning setDelegate:self];
+- (void)netServiceDidPublish:(NSNetService *)sender {
+    [self printLog:[NSString stringWithFormat:@"成功发布Bonjour服务：domain(%@) type(%@) name(%@) port(%i)", [sender domain], [sender type], [sender name], (int)[sender port]]];
+}
+- (void)netService:(NSNetService *)sender didNotPublish:(NSDictionary *)errorDict {
+    [self printLog:[NSString stringWithFormat:@"发布Bonjour服务失败：domain(%@) type(%@) name(%@) - %@", [sender domain], [sender type], [sender name], errorDict]];
 }
 
-- (void)controlTextDidChange:(NSNotification *)obj {
-    if ([obj object] == self.word) {
-        NSString * str = self.word.stringValue;
-        if (str.length == 0) {
-            self.tableContent = self.wordsObj;
-        } else {
-            NSPredicate * pre = [NSPredicate predicateWithFormat:@"word beginsWith %@", self.word.stringValue];
-            self.filterWords = [[self.wordsObj filteredArrayUsingPredicate:pre] mutableCopy];
-            self.tableContent = self.filterWords;
-            NSString * word = [self.filterWords[0] valueForKey:@"word"];
+- (void)socket:(GCDAsyncSocket *)sock didAcceptNewSocket:(GCDAsyncSocket *)newSocket {
+    [self printLog:[NSString stringWithFormat:@"接受来自%@:%hu的连接！", [newSocket connectedHost], [newSocket connectedPort]]];
+    
+}
 
-            if (self.filterWords.count == 1 && [word isEqualToString:str]) {
-                NSString * meaning = [self.filterWords[0] valueForKey:@"meaning"];
-                self.meaning.stringValue = meaning;
-            } else {
-                self.meaning.stringValue = @"";
-            }
-        }
-        [self.table reloadData];
-        //self.word.f];
+- (void)socketDidDisconnect:(GCDAsyncSocket *)sock withError:(NSError *)err {
+    
+}
 
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
+    if (!([keyPath isEqualToString:@"strWord"] || [keyPath isEqualToString:@"strMeaning"])) {
+        [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
     }
     
-    NSString * word = self.word.stringValue;
-    NSString * meaning = self.meaning.stringValue;
-    if (0 != word.length && 0 != meaning.length) [self.btnAddWord setEnabled:YES];
-    else [self.btnAddWord setEnabled:NO];
+    //PK activiate "add" button ?
+    //NSLog(@"%@ - %@", self.strWord, self.strMeaning);
+    [self.btnAddWord setEnabled:(0 != self.strWord.length && 0 != self.strMeaning.length)];
+ 
+    //PK filter words list according to input word
+    static NSString * preWord = nil;
+    if ([self.strWord isEqualToString:preWord]) return;
+    preWord = [self.strWord copy];
+    
+    if (self.strWord.length == 0) {
+        self.tableContent = self.wordsObj;
+    } else  {
+        
+        NSPredicate * pre = [NSPredicate predicateWithFormat:@"word beginsWith %@", self.word.stringValue];
+        self.filterWords = [[self.wordsObj filteredArrayUsingPredicate:pre] mutableCopy];
+        self.tableContent = self.filterWords;
+        
+        //PK 直接设置textfield的stringValue不会引起绑定的对象变化，所以只有手动设置一下
+        self.meaning.stringValue = @"";
+        self.strMeaning = @"";
+        for (NSManagedObject * val in self.filterWords) {
+            NSString * word = [val valueForKey:@"word"];
+            if ([word isEqualToString:self.strWord]) {
+                NSString * meaning = [self.filterWords[0] valueForKey:@"meaning"];
+                self.meaning.stringValue = meaning;
+                self.strMeaning = meaning;
+            }
+        }
+    }
+    [self.table reloadData];
 }
+
+
+//- (BOOL)control:(NSControl *)control textShouldEndEditing:(NSText *)fieldEditor {
+////    if (control == self.word) {
+////        [self.meaning becomeFirstResponder];
+////    }
+////    if (control == self.meaning) {
+//        if (0 != self.strWord.length && 0 != self.strMeaning.length) [self addWord:nil];
+////    }
+//    return YES;
+//    
+//}
 
 - (NSInteger) numberOfRowsInTableView:(NSTableView *)tableView {
     return self.tableContent.count;
@@ -164,6 +214,7 @@
     NSArray * matchs = [self.wordsObj filteredArrayUsingPredicate:pre];
     if (0 != [matchs count]) {  //PK 修改内容
         [matchs[0] setValue:meaning forKeyPath:@"meaning"];
+        [self printLog:[NSString stringWithFormat:@"修改单词：%@ - %@", word, meaning]];
     } else {                    //保存单词
         NSManagedObjectContext * context = [self getManagedObjectContext];
         NSManagedObject * obj = [NSEntityDescription insertNewObjectForEntityForName:@"Words" inManagedObjectContext:context];
@@ -172,12 +223,15 @@
         [obj setValue:[NSDate date] forKey:@"lastAccess"];
         [obj setValue:[NSNumber numberWithInt:0] forKey:@"familiarity"];
         [self.wordsObj addObject:obj];
+        [self printLog:[NSString stringWithFormat:@"添加单词：%@ - %@", word, meaning]];
     }
     [self saveContext];
     
     //清空textfield内容
     self.word.stringValue = @"";
     self.meaning.stringValue = @"";
+    self.strWord = @"";
+    self.strMeaning = @"";
     [self.btnAddWord setEnabled:NO];
     [self.word becomeFirstResponder];
     self.tableContent = self.wordsObj;
@@ -196,9 +250,11 @@
     NSIndexSet * rows = [self.table selectedRowIndexes];
     [rows enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *stop) {
         [[self getManagedObjectContext] deleteObject:self.tableContent[idx]];
-        [self printLog:[NSString stringWithFormat:@"删除单词：%@ - %@",
+        NSString * log = [NSString stringWithFormat:@"删除单词：%@ - %@",
                         [self.tableContent[idx] valueForKey:@"word"],
-                        [self.tableContent[idx] valueForKey:@"meaning"]]];
+                        [self.tableContent[idx] valueForKey:@"meaning"]];
+        [self printLog:log];
+        NSLog(@"%@", log);
     }];
     [self saveContext];
     
@@ -206,8 +262,7 @@
         [self.wordsObj removeObjectsAtIndexes:rows];
     } else {
         //PK 如果删除时用的时过滤表，要把原表中相应的项也删除
-        NSMutableArray * objs = [NSMutableArray array];
-        [objs insertObjects:self.filterWords atIndexes:rows];
+        NSArray * objs = [self.filterWords objectsAtIndexes:rows];
         [self.filterWords removeObjectsAtIndexes:rows];
         [self.wordsObj removeObjectsInArray:objs];
     }
@@ -216,7 +271,7 @@
 }
 
 - (IBAction)returnOnTextField:(id)sender {
-    [self addWord:nil];
+    if (self.btnAddWord.isEnabled) [self addWord:nil];
 }
 
 - (void)printLog:(NSString *)log {

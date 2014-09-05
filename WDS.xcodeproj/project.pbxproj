@@ -18,6 +18,7 @@
 		5C6AF49D1998C89400B322B1 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5C6AF47C1998C89300B322B1 /* Cocoa.framework */; };
 		5C6AF4A51998C89400B322B1 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 5C6AF4A31998C89400B322B1 /* InfoPlist.strings */; };
 		5C6AF4A71998C89400B322B1 /* WDSTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C6AF4A61998C89400B322B1 /* WDSTests.m */; };
+		5CCB56C519B9A8CC007F3ADE /* GCDAsyncSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CCB56C419B9A8CC007F3ADE /* GCDAsyncSocket.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -50,6 +51,8 @@
 		5C6AF4A21998C89400B322B1 /* WDSTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "WDSTests-Info.plist"; sourceTree = "<group>"; };
 		5C6AF4A41998C89400B322B1 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		5C6AF4A61998C89400B322B1 /* WDSTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WDSTests.m; sourceTree = "<group>"; };
+		5CCB56C319B9A8CC007F3ADE /* GCDAsyncSocket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDAsyncSocket.h; sourceTree = "<group>"; };
+		5CCB56C419B9A8CC007F3ADE /* GCDAsyncSocket.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDAsyncSocket.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -115,6 +118,8 @@
 		5C6AF4821998C89300B322B1 /* WDS */ = {
 			isa = PBXGroup;
 			children = (
+				5CCB56C319B9A8CC007F3ADE /* GCDAsyncSocket.h */,
+				5CCB56C419B9A8CC007F3ADE /* GCDAsyncSocket.m */,
 				5C6AF48E1998C89300B322B1 /* TWAppDelegate.h */,
 				5C6AF48F1998C89300B322B1 /* TWAppDelegate.m */,
 				5C6AF4911998C89400B322B1 /* MainMenu.xib */,
@@ -253,6 +258,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5CCB56C519B9A8CC007F3ADE /* GCDAsyncSocket.m in Sources */,
 				5C6AF4891998C89300B322B1 /* main.m in Sources */,
 				5C6AF4901998C89300B322B1 /* TWAppDelegate.m in Sources */,
 			);
